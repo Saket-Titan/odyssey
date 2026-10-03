@@ -36,3 +36,11 @@ def test_tensor_add_forward_and_backward():
     d._backward()
     assert np.allclose (a.grad, [2.0,2.0])
 
+def test_tensor_scalar_Addition():
+    a = Tensor([1.0,2.0],requires_grad=True)
+
+    c1 = a + 5.0
+    c2 = 5.0 + a
+    assert np.allclose(c1.data, [6.0, 7.0])
+    assert np.allclose(c2.data, [6.0, 7.0])
+

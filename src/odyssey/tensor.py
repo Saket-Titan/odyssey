@@ -25,6 +25,10 @@ class Tensor:
                 other.grad += out.grad*1.0
         out._backward = _backward
         return out
+
+    def __radd__(self, other):
+        return self.__add__(other)
+        
             
 
 
