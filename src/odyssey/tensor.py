@@ -21,7 +21,7 @@ class Tensor:
                 self.grad += out.grad*1.0
             if other.requires_grad:
                 if other.grad is None:
-                    other.grad = np.zeros_like(other,dtype = np.float32)
+                    other.grad = np.zeros_like(other.data,dtype = np.float32)
                 other.grad += out.grad*1.0
         out._backward = _backward
         return out
@@ -34,9 +34,12 @@ class Tensor:
     def __mul__(self, other):
         if not isinstance(other, Tensor):
             other = Tensor(other)
+
         out = Tensor(self.data * other.data, self.requires_grad or self.requires_grad)
         out._prev = (self, other)
+
         def _backward():
+            
             if self.requires_grad:
                 if self.grad is None:
                     self.grad = np.zeros_like(self.data, dtype=np.float32)
@@ -62,7 +65,7 @@ class Tensor:
         ##create the list using DFS
         topo = []
         visited = set ()
-        
+
         if self.grad is None:
             self.grad = np.ones_like(self.data, dtype=np.float32)
         
@@ -75,11 +78,12 @@ class Tensor:
         
                 topo.append(self)
 
-        self.build_topo(topo,visited)
+        build_topo(self,topo,visited)
         topo.reverse()
 
         for n in topo:
             n._backward()
+
 
 
 
