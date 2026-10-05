@@ -57,8 +57,36 @@ class Tensor:
     def __rmul__(self,other):
         return self.__mul__(other)
 
-         
+
+    def backward(self):
+        ##create the list using DFS
+        topo = []
+        visited = set ()
         
+        if self.grad is None:
+            self.grad = np.ones_like(self.data, dtype=np.float32)
+        
+        def build_topo(self,topo,visited):
+                if self in visited:
+                    return
+                visited.add(self)
+                for p in self._prev:
+                    build_topo(p,topo, visited)
+        
+                topo.append(self)
+
+        self.build_topo(topo,visited)
+        topo.reverse()
+
+        for n in topo:
+            n._backward()
+
+
+
+
+    
+        
+
 
 
 
