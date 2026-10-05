@@ -97,3 +97,12 @@ def test_tensor_backward_chain():
     assert np.allclose(w1.grad,[4.0 , 6.0])
     assert np.allclose(x.grad,[6.0 , 8.0])
 
+
+def test_tensor_backward_diamond():
+    x = Tensor([3.0 -1.0], requires_grad=True)
+    a = x*3.0
+    b = x*5.0
+    L = a + b
+    L.backward()
+
+    assert np.allclose(x.grad,[8.0 , 8.0])
