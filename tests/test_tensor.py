@@ -99,10 +99,105 @@ def test_tensor_backward_chain():
 
 
 def test_tensor_backward_diamond():
-    x = Tensor([3.0 -1.0], requires_grad=True)
+    x = Tensor([3.0, -1.0], requires_grad=True)
     a = x*3.0
     b = x*5.0
     L = a + b
     L.backward()
 
     assert np.allclose(x.grad,[8.0 , 8.0])
+
+def test_tensor_matmul():
+    a = Tensor(np.array([[1.0 , 2.0, 3.0],
+                         [4.0, 5.0, 6.0]]), 
+                         requires_grad=True)
+    b = Tensor(np.array([[1.0, 2.0 ],
+                         [3.0, 4.0],
+                         [5.0, 6.0]]), requires_grad=True)
+
+    c = a@b
+
+    c.grad = np.array([[1.0 , 1.0],[1.0 , 1.0]])
+    c.backward()
+
+    assert a.grad.shape == (2,3)
+    assert b.grad.shape == (3,2)
+
+    assert np.allclose(a.grad , [[3.0, 7.0, 11.0], 
+                                     [3.0, 7.0, 11.0]])
+        
+    assert np.allclose(b.grad, [[5.0, 5.0],
+                                [7.0, 7.0],
+                                [9.0, 9.0]])
+
+
+
+def test_tensor_backward_chain_matmul():
+    X = Tensor(
+        np.array([
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0]
+        ]),
+        requires_grad=True
+    )
+
+    W = Tensor(
+        np.array([
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0]
+        ]),
+        requires_grad=True
+    )
+
+    # Forward pass
+    Y = X @ W
+    loss = Y * 2.0
+
+    # Backward pass
+    loss.backward()
+
+    # Forward result
+    assert np.allclose(
+        Y.data,
+        [[22.0, 28.0],
+         [49.0, 64.0]]
+    )
+
+    assert np.allclose(
+        loss.data,
+        [[44.0, 56.0],
+         [98.0, 128.0]]
+    )
+
+    # Gradient shapes
+    assert loss.grad.shape == (2, 2)
+    assert Y.grad.shape == (2, 2)
+    assert X.grad.shape == (2, 3)
+    assert W.grad.shape == (3, 2)
+
+    # Gradient values
+    assert np.allclose(
+        loss.grad,
+        [[1.0, 1.0],
+         [1.0, 1.0]]
+    )
+
+    assert np.allclose(
+        Y.grad,
+        [[2.0, 2.0],
+         [2.0, 2.0]]
+    )
+
+    assert np.allclose(
+        X.grad,
+        [[6.0, 14.0, 22.0],
+         [6.0, 14.0, 22.0]]
+    )
+
+    assert np.allclose(
+        W.grad,
+        [[10.0, 10.0],
+         [14.0, 14.0],
+         [18.0, 18.0]]
+    )
