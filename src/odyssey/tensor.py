@@ -28,9 +28,6 @@ class Tensor:
 
     def __radd__(self, other):
         return self.__add__(other)
-        
-
-
     def __mul__(self, other):
         if not isinstance(other, Tensor):
             other = Tensor(other)
@@ -85,11 +82,25 @@ class Tensor:
             n._backward()
 
 
+    def __matmul__(self, other):
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
 
+        out = Tensor(np.matmul(self.data,other.data), self.requires_grad or other.requires_grad)
+        out._prev = (self, other)
 
+        def _backward():
+            if self.requires_grad:
+                if self.grad is None:
+                    self.grad = np.zeros_like(self.data)
+                self.grad += np.matmul(out.grad,np.transpose(other.data))
+            if other.requires_grad:
+                if other.grad is None:
+                    other.grad = np.zeros_like(other.data)
+                other.grad += np.matmul(np.transpose(self.data),out.grad)
+        out._backward = _backward     
 
-    
-        
+        return out   
 
 
 
